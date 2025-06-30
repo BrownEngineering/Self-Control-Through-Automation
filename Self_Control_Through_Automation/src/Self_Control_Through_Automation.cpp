@@ -69,8 +69,8 @@ if (timer.isTimerReady()){
 }
 
 
-void dispense(int speed){
-  myServo.write(speed);
+void dispense(int p_per_msec){
+  myServo.write(p_per_msec);
   int currentSec=millis();
   int currentSec != int lastSecond;
 
