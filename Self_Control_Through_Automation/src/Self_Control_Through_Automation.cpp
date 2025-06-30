@@ -48,21 +48,21 @@ void setup() {
 
 void loop() {
   detected=detectionCheck();
-  if (millis() + waitTime > disableTimerStart){
+  if (millis() - waitTime > disableTimerStart){
   if (detected){
-    disableTimerStart=millis();
+    //disableTimerStart=millis();
     dispense(dispenseTime);
     //Serial.printf("Dispensing%i\n",dispenseTime);
+    disableTimerStart=millis();
     disableTimerStarted = TRUE;
   }
   if(!detected){
     analogWrite(potPin,191);
     //Serial.printf("Waiting\n");
     }
-  if(waitTime+disableTimerStart>millis()){
+  if(waitTime+disableTimerStart<millis()){
     disableTimerStarted=FALSE;
-  }
-
+    }
   }
 }
   //  potPos = analogRead(potPin);
