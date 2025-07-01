@@ -23,6 +23,13 @@ bool detected;
 int newState;
 int oldState;
 
+unsigned int msec;
+static bool started = FALSE;
+static unsigned int startTime=0;
+
+int rotate = 60;
+int stop = 191;
+
 //Objects
 IoTTimer timer;
 Servo myServo;
@@ -48,23 +55,28 @@ void setup() {
 
 void loop() {
   detected=detectionCheck();
-  if (millis() - waitTime > disableTimerStart){
+  if (millis() - disableTimerStart > waitTime){
   if (detected){
-    //disableTimerStart=millis();
-    dispense(dispenseTime);
-    //Serial.printf("Dispensing%i\n",dispenseTime);
+     //if (!started){
+    //startTime=millis();
+    analogWrite(potPin,rotate);
+    Serial.printf("Dispensing%i\n",dispenseTime);
+    //started = TRUE;
+  }
+
     disableTimerStart=millis();
     disableTimerStarted = TRUE;
   }
+  if (millis()-startTime>dispenseTime){
+    analogWrite(potPin,stop);
+    //started = FALSE;
+  }
   if(!detected){
-    analogWrite(potPin,191);
-    //Serial.printf("Waiting\n");
-    }
-  if(waitTime+disableTimerStart<millis()){
-    disableTimerStarted=FALSE;
+    analogWrite(potPin,stop);
+    Serial.printf("Waiting\n");
     }
   }
-}
+//}
   //  potPos = analogRead(potPin);
    // potPos = potPos/16;
 // if (timer.isTimerReady()){
