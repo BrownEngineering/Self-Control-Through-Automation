@@ -287,7 +287,7 @@ const unsigned char bitmap_bp2yzj[] PROGMEM = {
 const int THERM_PIN = D5;
 const int POT_PIN = A5;
 int potPos;
-int dispenseTime = 100;
+int dispenseTime = 1000;
 static unsigned int disableTimerStart = 0;
 int waitTime = 1000*5;
 bool detected;
@@ -301,6 +301,7 @@ int m;
 int wemo_AC;
 int wemo_TV;
 int BULB;
+bool comfort = FALSE;
 
 
 unsigned int msec;
@@ -310,7 +311,7 @@ int rotate = 60;
 int stop = 191;
 
 //myObjects
-IoTTimer goodBoyTimer;
+IoTTimer goodBoyTimer, displayTimer;
 Servo myServo;
 const int OLED_RESET =-1;
 Adafruit_SSD1306 display(OLED_RESET);
@@ -322,6 +323,8 @@ SYSTEM_MODE(SEMI_AUTOMATIC);
 
 void setup() {
   Serial.begin(9600);
+  waitFor(Serial.isConnected,10000);
+
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
   display.display();
@@ -339,7 +342,6 @@ void setup() {
   display.display();
   delay(4000);
 
-  waitFor(Serial.isConnected,10000);
   pinMode(THERM_PIN,INPUT);
   pinMode(POT_PIN,OUTPUT);
   disableTimerStart = millis();
@@ -357,6 +359,7 @@ void setup() {
   switchON(wemo_TV);
   for (BULB=0;BULB<5;BULB++){
   setHue(BULB,TRUE,HueGreen,255,255);
+  Serial.printf(" Hue on %i\n",BULB);
   }
 }
 void loop() {
@@ -370,15 +373,21 @@ void loop() {
       Serial.printf("Dispensing%i\n",dispenseTime);
       disableTimerStart=millis(); // reset disable timer
       m++; // increment m + 1 
-      
+      displayTimer.startTimer(dispenseTime);
       display.clearDisplay();  // Dispence face
       display.drawBitmap(origin, origin, bitmap_uvoy98,UVOY98_BMPWIDTH,UVOY98_BMPHEIGHT,WHITE);
       display.display();
+      displayTimer.isTimerReady();
+      display.clearDisplay;
+      display.dispaly;
 ///////////////////////////////
         if (m==1){
           goodBoyTimer.startTimer(60000*10);
+          if(!comfort){
           switchON(wemo_AC);
           switchON(wemo_TV);
+          comfort=TRUE;
+          }
           for (BULB=0;BULB<5;BULB++){
           setHue(BULB,TRUE,HueGreen,255,255);
           }
@@ -403,6 +412,7 @@ void loop() {
           goodBoyTimer.startTimer(((60000*10)*6)*6);
           switchOFF(wemo_AC);
           switchOFF(wemo_TV);
+          comfort=FALSE;
           for (BULB=0;BULB<5;BULB++){
           setHue(BULB,TRUE,HueRed,255,255);
           }    
@@ -415,10 +425,11 @@ void loop() {
           Serial.printf("NO MORE m&m's fatso!\n      GO OUTSIDE!\n");
           // delay(4000);     
        }
-    }   
-         if (millis()-startTime>dispenseTime){ // stop dispense
+          if (millis()-startTime>dispenseTime){ // stop dispense
           analogWrite(POT_PIN,stop);
           Serial.printf("STOP_STOP_STOP_Dispensing\n \n \n Stopped\n");
+    }   
+
     }
     if((m==8)&&(goodBoyTimer.isTimerReady())){
       m=0;
