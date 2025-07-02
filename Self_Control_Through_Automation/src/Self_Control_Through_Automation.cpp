@@ -292,6 +292,7 @@ static unsigned int disableTimerStart = 0;
 int waitTime = 1000*5;
 bool detected;
 bool dispense_Flag = FALSE;
+static bool lockOut_Flag = FALSE;
 
 const int origin = 0;
 
@@ -299,11 +300,11 @@ int newState;
 int oldState;
 
 int m;
-int wemo_AC;
-int wemo_TV;
+int wemo_AC=0;
+int wemo_TV=2;
 int BULB;
 bool comfort = FALSE;
-
+const int FACE_TIME = 3000; 
 
 unsigned int msec;
 static unsigned int startTime=0;
@@ -312,7 +313,7 @@ int rotate = 60;
 int stop = 191;
 
 //myObjects
-IoTTimer goodBoyTimer, displayTimer;
+IoTTimer goodBoyTimer, displayTimer, longCountTimer;
 Servo myServo;
 const int OLED_RESET =-1;
 Adafruit_SSD1306 display(OLED_RESET);
@@ -359,7 +360,11 @@ void setup() {
   }
   Serial.printf("Connected!!\n \n \n");
   switchON(wemo_AC);
+  delay(100);
+  Serial.printf("wemo AC on\n");
   switchON(wemo_TV);
+  delay(100);
+  Serial.printf("wemo TV on\n");
   for (BULB=0;BULB<5;BULB++){
   setHue(BULB,TRUE,HueGreen,255,255);
   Serial.printf(" Hue on %i\n",BULB);
@@ -370,7 +375,7 @@ void loop() {
 
   ////////////////////////////////
   detected=detectionCheck(); // check sensor for signal
-  if (millis() - disableTimerStart > waitTime){ // disable sensor, timing
+  if ((millis() - disableTimerStart > waitTime)&&(lockOut_Flag==FALSE)){ // disable sensor, timing
     if (detected){
       startTime=millis(); //set time condition for future stop
       analogWrite(POT_PIN,rotate); //dispense until stopped
@@ -378,71 +383,104 @@ void loop() {
       Serial.printf("Dispensing%i\n",dispenseTime);
       disableTimerStart=millis(); // reset disable timer
       m++; // increment m + 1 
-      displayTimer.startTimer(dispenseTime);
+      displayTimer.startTimer(FACE_TIME);
       display.clearDisplay();  // Dispence face
       display.drawBitmap(origin, origin, bitmap_uvoy98,UVOY98_BMPWIDTH,UVOY98_BMPHEIGHT,WHITE);
-      display.display();
+      //display.display();
       displayTimer.isTimerReady();
-      display.clearDisplay();
+      //display.clearDisplay();
       display.display();
 ///////////////////////////////
-        if (m==1){
-          goodBoyTimer.startTimer(60000*10);
-          if(!comfort){
-          switchON(wemo_AC);
-          switchON(wemo_TV);
-          comfort=TRUE;
-          }
-          for (BULB=0;BULB<5;BULB++){
-          setHue(BULB,TRUE,HueGreen,255,255);
-          delay(500);
-          }
-          Serial.printf("m=%i\n",m);
+      if (m==1){
+        goodBoyTimer.startTimer(60000/2);
+        if(!comfort){
+        switchON(wemo_AC);
+        switchON(wemo_TV);
+        comfort=TRUE;
         }
-        if((m>=2) && (m <5)){
-          for (BULB=0;BULB<5;BULB++){
-          setHue(BULB,TRUE,HueGreen,255,255);
-          delay(500);
-          }
-          Serial.printf("m=%i\n",m);
+        for (BULB=0;BULB<5;BULB++){
+        setHue(BULB,TRUE,HueBlue,255,255);
+        Serial.printf(" Hue on %i\n",BULB);
+        delay(100);
+        setHue(BULB,TRUE,HueViolet,255,255);
+        Serial.printf(" Hue on %i\n",BULB);
+        delay(100);
+        setHue(BULB,TRUE,HueGreen,255,255);
+        delay(100);
+        Serial.printf(" Hue on %i\n",BULB);
         }
-        if((5<m) && (m<8)){
-          for (BULB=0;BULB<5;BULB++){
-          setHue(BULB,TRUE,HueYellow,255,255);
-          delay(500);
-          }
-          display.clearDisplay();  // Sus Face
-          display.drawBitmap(origin, origin, bitmap_uvoy98,UQQXMF_BMPWIDTH,UQQXMF_BMPHEIGHT,WHITE);
-          display.display();
-          Serial.printf("m=%i\n",m);
+        Serial.printf("m=%i\n",m);
+      }
+      if((m>=2) && (m<=4)){
+        for (BULB=0;BULB<5;BULB++){
+        setHue(BULB,TRUE,HueBlue,255,255);
+        Serial.printf(" Hue on %i\n",BULB);
+        delay(300);
+        setHue(BULB,TRUE,HueViolet,255,255);
+        Serial.printf(" Hue on %i\n",BULB);
+        delay(300);
+        setHue(BULB,TRUE,HueGreen,255,255);     
+        Serial.printf(" Hue on %i\n",BULB);
+        delay(100);
         }
-          if(m==8){
-          goodBoyTimer.startTimer(((60000*10)*6)*6);
-          switchOFF(wemo_AC);
-          switchOFF(wemo_TV);
-          comfort=FALSE;
-          for (BULB=0;BULB<5;BULB++){
-          setHue(BULB,TRUE,HueRed,255,255);
-          delay(500);
-          }    
-          display.clearDisplay();  // Dead Eyes
-          display.drawBitmap(origin, origin, bitmap_bp2yzj,BP2YZJ_BMPWIDTH,BP2YZJ_BMPHEIGHT,WHITE);
-          display.display();
-          Serial.printf("m=%i\n",m);
+        Serial.printf("m=%i\n",m);
+      }
+      if((5<=m) && (m<8)){
+        for (BULB=0;BULB<5;BULB++){
+        setHue(BULB,TRUE,HueOrange,255,255);
+        delay(300);
+        Serial.printf(" Hue on %i\n",BULB);
+        setHue(BULB,TRUE,HueYellow,255,255);
+        delay(300);
+        Serial.printf(" Hue on %i\n",BULB);
+        delay(100);
+        }
+        display.clearDisplay();  // Sus Face
+        display.drawBitmap(origin, origin, bitmap_uvoy98,UQQXMF_BMPWIDTH,UQQXMF_BMPHEIGHT,WHITE);
+      //display.display();
+        displayTimer.startTimer(FACE_TIME);
+      //display.clearDisplay();
+        display.display();
+        Serial.printf("m=%i\n",m);
+      }
+        if(m==8){
+        longCountTimer.startTimer(60000/2); //(60000*10)*6)*6 = (6hrs)
+        switchOFF(wemo_AC);
+        switchOFF(wemo_TV);
+        comfort=FALSE;
+        for (BULB=0;BULB<5;BULB++){
+        setHue(BULB,TRUE,HueRed,255,255);
+        delay(100);
+        }    
+        display.clearDisplay();  // Dead Eyes
+        display.drawBitmap(origin, origin, bitmap_bp2yzj,BP2YZJ_BMPWIDTH,BP2YZJ_BMPHEIGHT,WHITE);
+        display.display();
+        // displayTimer.startTimer(FACE_TIME);
+        // display.clearDisplay();
+        // display.display();
+        Serial.printf("m=%i\n",m);
 
-          analogWrite(POT_PIN,stop);
-          Serial.printf("NO MORE m&m's fatso!\n      GO OUTSIDE!\n");
-          // delay(4000);     
-       }
-    }     
-          if ((millis()-startTime>dispenseTime)&&(dispense_Flag==TRUE)){ // stop dispense
-          analogWrite(POT_PIN,stop);
-          Serial.printf("STOP_STOP_STOP_Dispensing\n \n \n Stopped\n");
-          dispense_Flag=FALSE;
-    }   
-    if((m==8)&&(goodBoyTimer.isTimerReady())){
-      m=0;
+        analogWrite(POT_PIN,stop);
+        Serial.printf("NO MORE m&m's fatso!\n      GO OUTSIDE!\n");
+
+        lockOut_Flag=TRUE;
+        // delay(4000);     
+      }
+  }     
+    if ((millis()-startTime>dispenseTime)&&(dispense_Flag==TRUE)){ // stop dispense
+    analogWrite(POT_PIN,stop);
+    Serial.printf("STOP_STOP_STOP_Dispensing\n \n \n Stopped\n");
+    dispense_Flag=FALSE;
+  }   
+}
+  if((m==8)&&(longCountTimer.isTimerReady())){
+    m=0;
+    Serial.printf("m=%i\n",m); 
+    for (BULB=0;BULB<5;BULB++){
+    setHue(BULB,TRUE,HueBlue,255,255);
+    delay(100);
     }
+    lockOut_Flag=FALSE;
   }
 }
 
