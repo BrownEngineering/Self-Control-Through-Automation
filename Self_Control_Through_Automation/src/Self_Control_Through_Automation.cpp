@@ -291,6 +291,7 @@ int dispenseTime = 1000;
 static unsigned int disableTimerStart = 0;
 int waitTime = 1000*5;
 bool detected;
+bool dispense_Flag = FALSE;
 
 const int origin = 0;
 
@@ -340,7 +341,9 @@ void setup() {
   display.clearDisplay();  // Splash_Welcome_Screen
   display.drawBitmap(origin, origin, bitmap_dntu1r,DNTU1R_BMPWIDTH,DNTU1R_BMPHEIGHT,WHITE);
   display.display();
-  delay(4000);
+  delay(2000);
+  display.clearDisplay();
+  display.display();
 
   pinMode(THERM_PIN,INPUT);
   pinMode(POT_PIN,OUTPUT);
@@ -360,6 +363,7 @@ void setup() {
   for (BULB=0;BULB<5;BULB++){
   setHue(BULB,TRUE,HueGreen,255,255);
   Serial.printf(" Hue on %i\n",BULB);
+  delay(500);
   }
 }
 void loop() {
@@ -370,6 +374,7 @@ void loop() {
     if (detected){
       startTime=millis(); //set time condition for future stop
       analogWrite(POT_PIN,rotate); //dispense until stopped
+      dispense_Flag=TRUE;
       Serial.printf("Dispensing%i\n",dispenseTime);
       disableTimerStart=millis(); // reset disable timer
       m++; // increment m + 1 
@@ -378,8 +383,8 @@ void loop() {
       display.drawBitmap(origin, origin, bitmap_uvoy98,UVOY98_BMPWIDTH,UVOY98_BMPHEIGHT,WHITE);
       display.display();
       displayTimer.isTimerReady();
-      display.clearDisplay;
-      display.dispaly;
+      display.clearDisplay();
+      display.display();
 ///////////////////////////////
         if (m==1){
           goodBoyTimer.startTimer(60000*10);
@@ -390,18 +395,21 @@ void loop() {
           }
           for (BULB=0;BULB<5;BULB++){
           setHue(BULB,TRUE,HueGreen,255,255);
+          delay(500);
           }
           Serial.printf("m=%i\n",m);
         }
         if((m>=2) && (m <5)){
           for (BULB=0;BULB<5;BULB++){
           setHue(BULB,TRUE,HueGreen,255,255);
+          delay(500);
           }
           Serial.printf("m=%i\n",m);
         }
         if((5<m) && (m<8)){
           for (BULB=0;BULB<5;BULB++){
           setHue(BULB,TRUE,HueYellow,255,255);
+          delay(500);
           }
           display.clearDisplay();  // Sus Face
           display.drawBitmap(origin, origin, bitmap_uvoy98,UQQXMF_BMPWIDTH,UQQXMF_BMPHEIGHT,WHITE);
@@ -415,6 +423,7 @@ void loop() {
           comfort=FALSE;
           for (BULB=0;BULB<5;BULB++){
           setHue(BULB,TRUE,HueRed,255,255);
+          delay(500);
           }    
           display.clearDisplay();  // Dead Eyes
           display.drawBitmap(origin, origin, bitmap_bp2yzj,BP2YZJ_BMPWIDTH,BP2YZJ_BMPHEIGHT,WHITE);
@@ -425,12 +434,12 @@ void loop() {
           Serial.printf("NO MORE m&m's fatso!\n      GO OUTSIDE!\n");
           // delay(4000);     
        }
-          if (millis()-startTime>dispenseTime){ // stop dispense
+    }     
+          if ((millis()-startTime>dispenseTime)&&(dispense_Flag==TRUE)){ // stop dispense
           analogWrite(POT_PIN,stop);
           Serial.printf("STOP_STOP_STOP_Dispensing\n \n \n Stopped\n");
+          dispense_Flag=FALSE;
     }   
-
-    }
     if((m==8)&&(goodBoyTimer.isTimerReady())){
       m=0;
     }
