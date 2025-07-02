@@ -295,7 +295,7 @@ int waitTime = 1000*5;
 bool detected;
 bool dispense_Flag = FALSE;
 static bool lockOut_Flag = FALSE;
-int scrnShift_32 = 32;
+int scrnShift_32 = 36;
 const int origin = 0;
 
 int newState;
@@ -333,10 +333,14 @@ void setup() {
   display.clearDisplay();
   display.display();
 
-  display.setTextSize(1);  // Power on screen
+  display.setTextSize(2);  // Power on screen
   display.setTextColor(WHITE);
-  display.setCursor(0,16);
-  display.printf("S-C-T-A\nby Ben_Brown");
+  display.setCursor(24,0);
+  display.printf("S-C-T-A\n");
+  display.setCursor(54,16);
+  display.printf("by\n");
+  display.setCursor(8,32);
+  display.printf("Ben_Brown\n");
   display.display();
   delay(2000);
  
@@ -362,24 +366,24 @@ void setup() {
   Serial.printf("Connected!!\n \n \n");
 
   switchON(wemo_AC);
-  delay(100);
+  delay(500);
   Serial.printf("wemo AC on\n");
   switchON(wemo_TV);
-  delay(100);
+  delay(500);
   Serial.printf("wemo TV on\n");
-  for (BULB=0;BULB<5;BULB++){
+  for (BULB=0;BULB<7;BULB++){
   setHue(BULB,TRUE,HueGreen,255,255);
   Serial.printf(" Hue on %i\n",BULB);
   delay(500);
   }
 }
 void loop() {
-      //displayTimer.startTimer(FACE_TIME);
-      if (m<=4){
-      display.clearDisplay();  // Dispence face
-      display.drawBitmap(scrnShift_32,origin, bitmap_uvoy98,UVOY98_BMPWIDTH,UVOY98_BMPHEIGHT,WHITE);
-      display.display();
-      }
+  //displayTimer.startTimer(FACE_TIME);
+  if (m<=4){
+  display.clearDisplay();  // Dispence face
+  display.drawBitmap(scrnShift_32,origin, bitmap_uvoy98,UVOY98_BMPWIDTH,UVOY98_BMPHEIGHT,WHITE);
+  display.display();
+  }
   ////////////////////////////////
   detected=detectionCheck(); // check sensor for signal
   if ((millis() - disableTimerStart > waitTime)&&(lockOut_Flag==FALSE)){ // disable sensor, timing
@@ -393,8 +397,13 @@ void loop() {
       display.clearDisplay();
       display.setTextSize(2);
       display.setTextColor(BLACK,WHITE);
-      display.setCursor(32,0);
-      display.printf("Have\nsome\ncandy!!\n");
+      display.setCursor(36,8);
+      display.printf("Have\n");
+      display.setCursor(28,24);
+      display.printf(" some \n");
+      display.setCursor(18,40);
+      display.printf(" candy!!\n");
+
       display.display();
       delay(2000);
 
@@ -411,7 +420,7 @@ void loop() {
         switchON(wemo_TV);
         comfort=TRUE;
         }
-        for (BULB=0;BULB<5;BULB++){
+        for (BULB=0;BULB<7;BULB++){
         setHue(BULB,TRUE,HueBlue,255,255);
         Serial.printf(" Hue on %i\n",BULB);
         delay(100);
@@ -425,7 +434,7 @@ void loop() {
         Serial.printf("m=%i\n",m);
       }
       if((m>=2) && (m<=4)){
-        for (BULB=0;BULB<5;BULB++){
+        for (BULB=0;BULB<7;BULB++){
         setHue(BULB,TRUE,HueBlue,255,255);
         Serial.printf(" Hue on %i\n",BULB);
         delay(300);
@@ -439,7 +448,7 @@ void loop() {
         Serial.printf("m=%i\n",m);
       }
       if((5<=m) && (m<8)){
-        for (BULB=0;BULB<5;BULB++){
+        for (BULB=0;BULB<7;BULB++){
         setHue(BULB,TRUE,HueOrange,255,255);
         delay(300);
         Serial.printf(" Hue on %i\n",BULB);
@@ -461,7 +470,7 @@ void loop() {
         switchOFF(wemo_AC);
         switchOFF(wemo_TV);
         comfort=FALSE;
-        for (BULB=0;BULB<5;BULB++){
+        for (BULB=0;BULB<7;BULB++){
         setHue(BULB,TRUE,HueRed,255,255);
         delay(100);
         }    
@@ -489,7 +498,7 @@ void loop() {
   if((m==8)&&(longCountTimer.isTimerReady())){
     m=0;
     Serial.printf("m=%i\n",m); 
-    for (BULB=0;BULB<5;BULB++){
+    for (BULB=0;BULB<7;BULB++){
     setHue(BULB,TRUE,HueBlue,255,255);
     delay(100);
     }
