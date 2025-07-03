@@ -381,6 +381,9 @@ void loop() {
   if (button.isPressed()){
     m=0;
     analogWrite(POT_PIN,rotate);
+    Serial.printf("Candy for the Fatty!\n");
+  }else{
+    analogWrite(POT_PIN,stop);
   }
   //displayTimer.startTimer(FACE_TIME);
   if (m<=4){
