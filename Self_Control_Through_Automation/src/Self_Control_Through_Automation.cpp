@@ -146,7 +146,6 @@ const unsigned char bitmap_uvoy98[] PROGMEM = {
 
 #define KC4GMK_BMPWIDTH  128
 #define KC4GMK_BMPHEIGHT 64
-
 const unsigned char bitmap_kc4gmk[] PROGMEM = {
   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -213,7 +212,6 @@ const unsigned char bitmap_kc4gmk[] PROGMEM = {
   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 };
-
 
 #define BP2YZJ_BMPWIDTH  128 // dead eyes (red)
 #define BP2YZJ_BMPHEIGHT 64  
@@ -285,9 +283,9 @@ const unsigned char bitmap_bp2yzj[] PROGMEM = {
 };
 
 
-
 const int THERM_PIN = D5;
 const int POT_PIN = A5;
+const int TONE_PIN = A2;
 int potPos;
 int dispenseTime = 1000;
 static unsigned int disableTimerStart = 0;
@@ -319,6 +317,7 @@ IoTTimer goodBoyTimer, displayTimer, longCountTimer;
 Servo myServo;
 const int OLED_RESET =-1;
 Adafruit_SSD1306 display(OLED_RESET);
+Button button(D4);
 
 //myFunctons
 //void dispense(unsigned int msec);
@@ -378,6 +377,11 @@ void setup() {
   }
 }
 void loop() {
+
+  if (button.isPressed()){
+    m=0;
+    analogWrite(POT_PIN,rotate);
+  }
   //displayTimer.startTimer(FACE_TIME);
   if (m<=4){
   display.clearDisplay();  // Dispence face
@@ -477,6 +481,17 @@ void loop() {
         display.clearDisplay();  // Dead Eyes
         display.drawBitmap(origin, origin, bitmap_bp2yzj,BP2YZJ_BMPWIDTH,BP2YZJ_BMPHEIGHT,WHITE);
         display.display();
+        tone(TONE_PIN,800,500);
+           tone(TONE_PIN,800,500);
+              tone(TONE_PIN,800,500);
+
+        tone(TONE_PIN,1000,1000);
+          tone(TONE_PIN,1000,1000);
+              tone(TONE_PIN,1000,1000);
+
+        tone(TONE_PIN,800,500);
+          tone(TONE_PIN,800,500);
+              tone(TONE_PIN,800,500);
         // displayTimer.startTimer(FACE_TIME);
         // display.clearDisplay();
         // display.display();
