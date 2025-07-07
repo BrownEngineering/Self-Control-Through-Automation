@@ -15,8 +15,10 @@
 #include "Adafruit_GFX.h"
 #include "Adafruit_SSD1306.h"
 
+SYSTEM_MODE(SEMI_AUTOMATIC);
+
 //Bit_Maps
-#define DNTU1R_BMPWIDTH  128 // m&m Splash Screen
+#define DNTU1R_BMPWIDTH  128 // Skittles Splash Screen
 #define DNTU1R_BMPHEIGHT 64 
 const unsigned char bitmap_dntu1r[] PROGMEM = {
   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -144,7 +146,7 @@ const unsigned char bitmap_uvoy98[] PROGMEM = {
   0x00,0x00,0x00,0x00,0x00,0x00,0x00
 };
 
-#define KC4GMK_BMPWIDTH  128
+#define KC4GMK_BMPWIDTH  128 // Sus face (Yellow)
 #define KC4GMK_BMPHEIGHT 64
 const unsigned char bitmap_kc4gmk[] PROGMEM = {
   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -287,7 +289,7 @@ const int THERM_PIN = D5;
 const int POT_PIN = A5;
 const int TONE_PIN = A2;
 int potPos;
-int dispenseTime = 1000;
+int dispenseTime = 800;
 static unsigned int disableTimerStart = 0;
 int waitTime = 1000*5;
 bool detected;
@@ -295,6 +297,8 @@ bool dispense_Flag = FALSE;
 static bool lockOut_Flag = FALSE;
 int scrnShift_32 = 36;
 const int origin = 0;
+unsigned int displaySec;
+unsigned int displayMom = 2000;
 
 int newState;
 int oldState;
@@ -309,29 +313,33 @@ const int FACE_TIME = 3000;
 unsigned int msec;
 static unsigned int startTime=0;
 
-int rotate = 60;
+static bool unscrew_Flag = FALSE;
+int unscrew = 255;
+int slow_Rotate = 165;
+int fast_rotate = 45;
 int stop = 191;
+int zero = 0;
 
 //myObjects
-IoTTimer goodBoyTimer, displayTimer, longCountTimer;
+IoTTimer goodBoyTimer,displayTimer, longCountTimer;
 Servo myServo;
 const int OLED_RESET =-1;
 Adafruit_SSD1306 display(OLED_RESET);
-Button button(D4);
+Button button(D3);
 
-//myFunctons
-//void dispense(unsigned int msec);
+//Functons
 bool detectionCheck();
-SYSTEM_MODE(SEMI_AUTOMATIC);
+
 
 void setup() {
+  //Start Serial
   Serial.begin(9600);
   waitFor(Serial.isConnected,10000);
-
+  //Start OLED
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.clearDisplay();
   display.display();
-
+  //Title Screen
   display.setTextSize(2);  // Power on screen
   display.setTextColor(WHITE);
   display.setCursor(24,0);
@@ -342,7 +350,7 @@ void setup() {
   display.printf("Ben_Brown\n");
   display.display();
   delay(2000);
- 
+  //Welcome Screen
   display.clearDisplay();  // Splash_Welcome_Screen
   display.drawBitmap(origin, origin, bitmap_dntu1r,DNTU1R_BMPWIDTH,DNTU1R_BMPHEIGHT,WHITE);
   display.display();
@@ -355,71 +363,71 @@ void setup() {
   disableTimerStart = millis();
   oldState=digitalRead(THERM_PIN);
 
-  WiFi.on();
-  WiFi.clearCredentials();
-  WiFi.setCredentials("IoTNetwork");
-  WiFi.connect();
-  while(WiFi.connecting()){
-    Serial.printf("^-.-^\n");
-  }
-  Serial.printf("Connected!!\n \n \n");
+  //Start Wifi
+  // WiFi.on();
+  // WiFi.clearCredentials();
+  // WiFi.setCredentials("IoTNetwork");
+  // WiFi.connect();
+  // while(WiFi.connecting()){
+  //   Serial.printf("^-.-^\n");
+  // }
+  // Serial.printf("Connected!!\n \n \n");
 
+  //Set Initial room conditions
   switchON(wemo_AC);
-  delay(500);
+  delay(50);
   Serial.printf("wemo AC on\n");
   switchON(wemo_TV);
-  delay(500);
+  delay(50);
   Serial.printf("wemo TV on\n");
   for (BULB=0;BULB<7;BULB++){
   setHue(BULB,TRUE,HueGreen,255,255);
   Serial.printf(" Hue on %i\n",BULB);
-  delay(500);
+  delay(50);
   }
 }
 void loop() {
-
+  //Override Button Logic
   if (button.isPressed()){
     m=0;
-    analogWrite(POT_PIN,rotate);
+    analogWrite(POT_PIN,fast_rotate);
     Serial.printf("Candy for the Fatty!\n");
-  }else{
+    while(button.isPressed());
     analogWrite(POT_PIN,stop);
-  }
-  //displayTimer.startTimer(FACE_TIME);
+    delay(2);
+    analogWrite(POT_PIN,zero);
+  }else{
+
+  //display pleased face
   if (m<=4){
   display.clearDisplay();  // Dispence face
   display.drawBitmap(scrnShift_32,origin, bitmap_uvoy98,UVOY98_BMPWIDTH,UVOY98_BMPHEIGHT,WHITE);
   display.display();
   }
-  ////////////////////////////////
+  //Room control _ Dispense logic
   detected=detectionCheck(); // check sensor for signal
   if ((millis() - disableTimerStart > waitTime)&&(lockOut_Flag==FALSE)){ // disable sensor, timing
     if (detected){
       startTime=millis(); //set time condition for future stop
-      analogWrite(POT_PIN,rotate); //dispense until stopped
+      analogWrite(POT_PIN,fast_rotate); //dispense until stopped
       dispense_Flag=TRUE;
       Serial.printf("Dispensing%i\n",dispenseTime);
       disableTimerStart=millis(); // reset disable timer
-      m++; // increment m + 1 
+      m++; // increment m + 1
+      displaySec=millis(); 
+      if (millis()-displaySec<displayMom){
       display.clearDisplay();
       display.setTextSize(2);
       display.setTextColor(BLACK,WHITE);
       display.setCursor(36,8);
-      display.printf("Have\n");
+      display.printf(" Taste\n");
       display.setCursor(28,24);
-      display.printf(" some \n");
+      display.printf(" the \n");
       display.setCursor(18,40);
-      display.printf(" candy!!\n");
-
+      display.printf(" rainbow!!\n");
       display.display();
-      delay(2000);
-
-
-      //display.display();
-      displayTimer.isTimerReady();
-      //display.clearDisplay();
-      display.display();
-///////////////////////////////
+      }
+      //Green Condition
       if (m==1){
         goodBoyTimer.startTimer(60000/2);
         if(!comfort){
@@ -430,12 +438,12 @@ void loop() {
         for (BULB=0;BULB<7;BULB++){
         setHue(BULB,TRUE,HueBlue,255,255);
         Serial.printf(" Hue on %i\n",BULB);
-        delay(100);
+        delay(50);
         setHue(BULB,TRUE,HueViolet,255,255);
         Serial.printf(" Hue on %i\n",BULB);
-        delay(100);
+        delay(50);
         setHue(BULB,TRUE,HueGreen,255,255);
-        delay(100);
+        delay(50);
         Serial.printf(" Hue on %i\n",BULB);
         }
         Serial.printf("m=%i\n",m);
@@ -444,34 +452,34 @@ void loop() {
         for (BULB=0;BULB<7;BULB++){
         setHue(BULB,TRUE,HueBlue,255,255);
         Serial.printf(" Hue on %i\n",BULB);
-        delay(300);
+        delay(50);
         setHue(BULB,TRUE,HueViolet,255,255);
         Serial.printf(" Hue on %i\n",BULB);
-        delay(300);
+        delay(50);
         setHue(BULB,TRUE,HueGreen,255,255);     
         Serial.printf(" Hue on %i\n",BULB);
-        delay(100);
+        delay(50);
         }
         Serial.printf("m=%i\n",m);
       }
+      //Yellow condition
       if((5<=m) && (m<8)){
         for (BULB=0;BULB<7;BULB++){
         setHue(BULB,TRUE,HueOrange,255,255);
-        delay(300);
+        delay(50);
         Serial.printf(" Hue on %i\n",BULB);
         setHue(BULB,TRUE,HueYellow,255,255);
-        delay(300);
+        delay(50);
         Serial.printf(" Hue on %i\n",BULB);
-        delay(100);
+        delay(50);
         }
         display.clearDisplay();  // Sus Face
         display.drawBitmap(origin, origin, bitmap_kc4gmk,KC4GMK_BMPWIDTH,KC4GMK_BMPHEIGHT,WHITE);
-      //display.display();
         displayTimer.startTimer(FACE_TIME);
-      //display.clearDisplay();
         display.display();
         Serial.printf("m=%i\n",m);
       }
+        //Red condition with disabling logic
         if(m==8){
         longCountTimer.startTimer(60000/2); //(60000*10)*6)*6 = (6hrs)
         switchOFF(wemo_AC);
@@ -479,40 +487,56 @@ void loop() {
         comfort=FALSE;
         for (BULB=0;BULB<7;BULB++){
         setHue(BULB,TRUE,HueRed,255,255);
-        delay(100);
+        delay(50);
         }    
         display.clearDisplay();  // Dead Eyes
         display.drawBitmap(origin, origin, bitmap_bp2yzj,BP2YZJ_BMPWIDTH,BP2YZJ_BMPHEIGHT,WHITE);
         display.display();
-        tone(TONE_PIN,800,500);
-           tone(TONE_PIN,800,500);
-              tone(TONE_PIN,800,500);
+        tone(TONE_PIN,800,2000);
+        delay(50);
+          tone(TONE_PIN,1200,2000);
+          delay(50);
+            tone(TONE_PIN,1600,2000);
+            delay(50);
+              tone(TONE_PIN,2000,2000);
+              delay(50);
+                tone(TONE_PIN,2400,2000);
+                delay(50);
+                  tone(TONE_PIN,2800,2000);
+                  delay(50);
+                    tone(TONE_PIN,3200,2000);
+                    delay(50);
+                      tone(TONE_PIN,3600,2000);
+                      delay(50);
+                        tone(TONE_PIN,4000,2000);
+                        delay(50);
+                          tone(TONE_PIN,4400,2000);
+                          delay(50);
+                            tone(TONE_PIN,4800,2000);
+                            delay(500);
 
-        tone(TONE_PIN,1000,1000);
-          tone(TONE_PIN,1000,1000);
-              tone(TONE_PIN,1000,1000);
-
-        tone(TONE_PIN,800,500);
-          tone(TONE_PIN,800,500);
-              tone(TONE_PIN,800,500);
-        // displayTimer.startTimer(FACE_TIME);
-        // display.clearDisplay();
-        // display.display();
         Serial.printf("m=%i\n",m);
 
         analogWrite(POT_PIN,stop);
+        delay(2);
+        analogWrite(POT_PIN,zero);
         Serial.printf("NO MORE m&m's fatso!\n      GO OUTSIDE!\n");
 
-        lockOut_Flag=TRUE;
-        // delay(4000);     
+        lockOut_Flag=TRUE;    
       }
-  }     
-    if ((millis()-startTime>dispenseTime)&&(dispense_Flag==TRUE)){ // stop dispense
+  }   
+    // Stop dispense logi  
+    if ((millis()-startTime>dispenseTime&&dispense_Flag==TRUE)){ // stop dispense
     analogWrite(POT_PIN,stop);
+    delay(50);
+    analogWrite(POT_PIN,zero);
     Serial.printf("STOP_STOP_STOP_Dispensing\n \n \n Stopped\n");
     dispense_Flag=FALSE;
+    unscrew_Flag=FALSE;
   }   
 }
+}
+  //Reset logic
   if((m==8)&&(longCountTimer.isTimerReady())){
     m=0;
     Serial.printf("m=%i\n",m); 
