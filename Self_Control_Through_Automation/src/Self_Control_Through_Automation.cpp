@@ -301,15 +301,16 @@ const int THERM_PIN = D5;
 const int POT_PIN = A5;
 const int TONE_PIN = A2;
 int potPos;
-int dispenseTime = 800;
+int dispenseTime = 1200;
 static unsigned int disableTimerStart = 0;
 int waitTime = 1000*60;
-int longTime = 60000*10;//*10)*6)*6 = (6hrs)
+int goodboytime = (1000*60);//*12;
+int longTime = (1000*60);//10;//*10)*6)*6 = (6hrs)
 bool detected;
 bool dispense_Flag = FALSE;
 static bool lockOut_Flag = FALSE;
 int scrnShift_32 = 36;
-const int origin = 0;
+const int ORIGIN = 0;
 unsigned int displaySec;
 unsigned int displayMom = 4000;
 
@@ -353,7 +354,7 @@ void setup() {
   display.display();
   //Title Screen
   displaySec=millis(); 
-  if (millis()-displaySec<displayMom){
+  while (millis()-displaySec<displayMom){
   display.setTextSize(2);  // Power on screen
   display.setTextColor(WHITE);
   display.setCursor(24,0);
@@ -367,10 +368,13 @@ void setup() {
   //delay(2000);
   
   //Welcome Screen
+  displaySec=millis(); 
+  while (millis()-displaySec<displayMom){
   display.clearDisplay();  // Splash_Welcome_Screen
-  display.drawBitmap(32, origin, bitmap_y5qklug,Y5QKLUG_BMPWIDTH,Y5QKLUG_BMPHEIGHT,WHITE);
+  display.drawBitmap(32, ORIGIN, bitmap_y5qklug,Y5QKLUG_BMPWIDTH,Y5QKLUG_BMPHEIGHT,WHITE);
   display.display();
-  delay(2000);
+  }
+  //delay(2000);
   display.clearDisplay();
   display.display();
 
@@ -417,7 +421,7 @@ void loop() {
   //display pleased face
   if (m<=4){
   display.clearDisplay();  // Dispence face
-  display.drawBitmap(scrnShift_32,origin, bitmap_uvoy98,UVOY98_BMPWIDTH,UVOY98_BMPHEIGHT,WHITE);
+  display.drawBitmap(scrnShift_32,ORIGIN, bitmap_uvoy98,UVOY98_BMPWIDTH,UVOY98_BMPHEIGHT,WHITE);
   display.display();
   }
   //Room control _ Dispense logic
@@ -445,7 +449,7 @@ void loop() {
         }
       //Green Condition
       if (m==1){
-        goodBoyTimer.startTimer(60000/2);
+        goodBoyTimer.startTimer(goodboytime);
         if(!comfort){
         switchON(wemo_AC);
         switchON(wemo_TV);
@@ -490,7 +494,7 @@ void loop() {
         delay(50);
         }
         display.clearDisplay();  // Sus Face
-        display.drawBitmap(origin, origin, bitmap_kc4gmk,KC4GMK_BMPWIDTH,KC4GMK_BMPHEIGHT,WHITE);
+        display.drawBitmap(ORIGIN, ORIGIN, bitmap_kc4gmk,KC4GMK_BMPWIDTH,KC4GMK_BMPHEIGHT,WHITE);
         //displayTimer.startTimer(FACE_TIME);
         display.display();
         Serial.printf("m=%i\n",m);
@@ -506,7 +510,7 @@ void loop() {
         delay(50);
         }    
         display.clearDisplay();  // Dead Eyes
-        display.drawBitmap(origin, origin, bitmap_bp2yzj,BP2YZJ_BMPWIDTH,BP2YZJ_BMPHEIGHT,WHITE);
+        display.drawBitmap(ORIGIN, ORIGIN, bitmap_bp2yzj,BP2YZJ_BMPWIDTH,BP2YZJ_BMPHEIGHT,WHITE);
         display.display();
         tone(TONE_PIN,800,2000);
         delay(50);
