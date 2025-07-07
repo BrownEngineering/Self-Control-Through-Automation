@@ -1,8 +1,7 @@
-**Self control through automation**
-#
+# Self control through automation
 *authered by* 
 
-**Benjamin Brown**
+## **Benjamin Brown**
 ##
 
 **S-C-T-A** is a contactless, local area room controller, designed to change the enviroment as well as an onboard display, based on requests within a time inveral. 
