@@ -26,4 +26,5 @@ This also resets the machine to the "Green" state.
 
 
 Fore more information or other projects visit my Hackster.io 
-[Link] (https://www.hackster.io/ben_jammin/self-control-through-automation-d1ab04)
+
+(https://www.hackster.io/ben_jammin/self-control-through-automation-d1ab04)
