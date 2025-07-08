@@ -23,3 +23,7 @@ A seperate, LONG timer is set, after which the machine will reset to a "blue" st
 
 An over-ride has been designed in, where-in, a user who knows where the "secret" button is, can press it to activate full speed dispensing until the buitton is released.
 This also resets the machine to the "Green" state. 
+
+
+Fore more information or other projects visit my Hackster.io 
+[Link] (https://www.hackster.io/ben_jammin/self-control-through-automation-d1ab04)
