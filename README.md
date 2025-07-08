@@ -1,5 +1,5 @@
 # Self control through automation
-*authered by* 
+*authered and maintained by* 
 
 ## **Benjamin Brown**
 ##
